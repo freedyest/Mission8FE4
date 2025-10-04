@@ -1,5 +1,115 @@
 import { useState, useEffect } from "react";
 
+// Reusable input components
+const TextInput = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required,
+}) => (
+  <div className="flex flex-col">
+    <p>{label}</p>
+    <input
+      name={name}
+      value={value}
+      onChange={onChange}
+      type={type}
+      className="border p-2 rounded"
+      required={required}
+    />
+  </div>
+);
+
+const TextareaInput = ({ label, name, value, onChange, rows = 3 }) => (
+  <div className="flex flex-col">
+    <p>{label}</p>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      className="border p-2 rounded"
+    />
+  </div>
+);
+
+const SelectInput = ({ label, name, value, onChange, options, required }) => (
+  <div className="flex flex-col">
+    <p>{label}</p>
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="border p-2 rounded"
+      required={required}
+    >
+      <option value="">-- Pilih {label} --</option>
+      {options.map((opt) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+const FileInput = ({
+  label,
+  field,
+  value,
+  mode,
+  setMode,
+  onChange,
+  previewClass,
+}) => (
+  <div className="flex flex-col mb-2">
+    <p>{label}</p>
+    <div className="flex gap-4 mb-2">
+      <label>
+        <input
+          type="radio"
+          checked={mode === "url"}
+          onChange={() => setMode("url")}
+        />{" "}
+        URL
+      </label>
+      <label>
+        <input
+          type="radio"
+          checked={mode === "upload"}
+          onChange={() => setMode("upload")}
+        />{" "}
+        Upload
+      </label>
+    </div>
+    {mode === "url" ? (
+      <input
+        name={field}
+        value={value}
+        onChange={onChange}
+        className="border p-2 rounded"
+        placeholder={`${label} URL`}
+      />
+    ) : (
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => onChange(e, field)}
+        className="border p-2 rounded"
+      />
+    )}
+    {value && (
+      <img
+        src={value}
+        alt="preview"
+        className={`${previewClass} mt-2 rounded`}
+      />
+    )}
+  </div>
+);
+
 function CourseModal({ isOpen, onClose, onSave, initialData }) {
   const defaultForm = {
     image: "",
@@ -16,37 +126,45 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
   };
 
   const [form, setForm] = useState(defaultForm);
+  const [fileMode, setFileMode] = useState({ image: "url", avatar: "url" });
+  const [displayPrice, setDisplayPrice] = useState("");
 
-  const [imageMode, setImageMode] = useState("url");
-  const [avatarMode, setAvatarMode] = useState("url");
+  const categories = ["desain", "pengembangan", "bisnis", "pemasaran"];
 
-  // Reset form setiap kali modal dibuka
+  // Reset form saat modal dibuka
   useEffect(() => {
-    setForm(initialData || defaultForm);
+    setForm(initialData ? { ...initialData } : defaultForm);
+    setDisplayPrice(formatPrice(initialData?.price || 0));
   }, [initialData, isOpen]);
+
+  // Format price helper
+  const formatPrice = (value) => {
+    if (!value) return "";
+    const num = Number(value);
+    if (num >= 1000) return "Rp " + (num / 1000).toFixed(0) + "k";
+    return "Rp " + num;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e, field) => {
     const file = e.target.files[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setForm({ ...form, [field]: url });
+      setForm((prev) => ({ ...prev, [field]: url }));
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(form);
+    onSave(form); // form.price tetap angka
     onClose();
   };
 
   if (!isOpen) return null;
-
-  const categories = ["desain", "pengembangan", "bisnis", "pemasaran"];
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
@@ -59,197 +177,136 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
           onSubmit={handleSubmit}
           className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-2"
         >
-          {/* Title */}
-          <p>Title</p>
-          <input
+          <TextInput
+            label="Title"
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="Title"
-            className="border p-2 rounded"
             required
           />
-
-          {/* Description */}
-          <p>Description</p>
-          <textarea
+          <TextareaInput
+            label="Description"
             name="desc"
             value={form.desc}
             onChange={handleChange}
-            placeholder="Description"
-            className="border p-2 rounded min-h-32"
-            rows="3"
+            rows={3}
           />
-
-          {/* Category */}
-          <p>Category</p>
-          <select
+          <SelectInput
+            label="Category"
             name="category"
             value={form.category}
             onChange={handleChange}
-            className="border p-2 rounded"
+            options={categories}
             required
-          >
-            <option value="">-- Pilih Category --</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+          />
 
-          {/* Image */}
-          <p>Image disarankan pakai url </p>
-          <div className="flex gap-4 mb-2">
-            <label>
-              <input
-                type="radio"
-                checked={imageMode === "url"}
-                onChange={() => setImageMode("url")}
-              />{" "}
-              URL
-            </label>
-            <label>
-              <input
-                type="radio"
-                checked={imageMode === "upload"}
-                onChange={() => setImageMode("upload")}
-              />{" "}
-              Upload
-            </label>
-          </div>
-          {imageMode === "url" ? (
-            <input
-              name="image"
-              value={form.image}
-              onChange={handleChange}
-              placeholder="Image URL"
-              className="border p-2 rounded"
-            />
-          ) : (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, "image")}
-              className="border p-2 rounded"
-            />
-          )}
-          {form.image && (
-            <img
-              src={form.image}
-              alt="preview"
-              className="w-32 h-20 object-cover mt-2 rounded"
-            />
-          )}
+          <FileInput
+            label="Image"
+            field="image"
+            value={form.image}
+            mode={fileMode.image}
+            setMode={(m) => setFileMode((prev) => ({ ...prev, image: m }))}
+            onChange={handleFileChange}
+            previewClass="w-32 h-20 object-cover"
+          />
 
-          {/* Avatar */}
-          <p>Avatar disarankan pakai url</p>
-          <div className="flex gap-4 mb-2">
-            <label>
-              <input
-                type="radio"
-                checked={avatarMode === "url"}
-                onChange={() => setAvatarMode("url")}
-              />{" "}
-              URL
-            </label>
-            <label>
-              <input
-                type="radio"
-                checked={avatarMode === "upload"}
-                onChange={() => setAvatarMode("upload")}
-              />{" "}
-              Upload
-            </label>
-          </div>
-          {avatarMode === "url" ? (
-            <input
-              name="avatar"
-              value={form.avatar}
-              onChange={handleChange}
-              placeholder="Avatar URL"
-              className="border p-2 rounded"
-            />
-          ) : (
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, "avatar")}
-              className="border p-2 rounded"
-            />
-          )}
-          {form.avatar && (
-            <img
-              src={form.avatar}
-              alt="preview"
-              className="w-16 h-16 object-cover mt-2 rounded-full"
-            />
-          )}
+          <FileInput
+            label="Avatar"
+            field="avatar"
+            value={form.avatar}
+            mode={fileMode.avatar}
+            setMode={(m) => setFileMode((prev) => ({ ...prev, avatar: m }))}
+            onChange={handleFileChange}
+            previewClass="w-16 h-16 object-cover rounded-full"
+          />
 
-          {/* Instructor */}
-          <p>Instructor</p>
-          <input
+          <TextInput
+            label="Instructor"
             name="instructor"
             value={form.instructor}
             onChange={handleChange}
-            placeholder="Instructor Name"
-            className="border p-2 rounded"
           />
-
-          {/* Role */}
-          <p>Role</p>
-          <input
+          <TextInput
+            label="Role"
             name="role"
             value={form.role}
             onChange={handleChange}
-            placeholder="Role"
-            className="border p-2 rounded"
           />
-
-          {/* Company */}
-          <p>Company</p>
-          <input
+          <TextInput
+            label="Company"
             name="company"
             value={form.company}
             onChange={handleChange}
-            placeholder="Company"
-            className="border p-2 rounded"
           />
 
           {/* Rating */}
-          <p>Rating</p>
-          <input
-            name="rating"
-            type="number"
-            step="0.1"
-            value={form.rating}
-            onChange={handleChange}
-            placeholder="Rating"
-            className="border p-2 rounded"
-          />
+          <div className="flex flex-col">
+            <p>Rating</p>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`text-2xl cursor-pointer ${
+                    star <= Math.round(form.rating)
+                      ? "text-yellow-400"
+                      : "text-gray-300"
+                  }`}
+                  onClick={() => setForm((prev) => ({ ...prev, rating: star }))}
+                >
+                  ★
+                </span>
+              ))}
+              <input
+                type="number"
+                step="0.1"
+                min={0}
+                max={5}
+                value={form.rating}
+                onChange={(e) => {
+                  let val = parseFloat(e.target.value);
+                  if (isNaN(val)) val = 0;
+                  if (val > 5) val = 5;
+                  if (val < 0) val = 0;
+                  setForm((prev) => ({ ...prev, rating: val }));
+                }}
+                className="border p-1 rounded w-16 text-center"
+              />
+            </div>
+          </div>
 
-          {/* Reviews */}
-          <p>Reviews</p>
-          <input
+          <TextInput
+            label="Reviews(jumlah reviewer)"
             name="reviews"
             type="number"
             value={form.reviews}
             onChange={handleChange}
-            placeholder="Review Count"
-            className="border p-2 rounded"
           />
 
           {/* Price */}
-          <p>Price</p>
-          <input
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="Price"
-            className="border p-2 rounded"
-          />
+          <div className="flex flex-col">
+            <p className="mb-1 font-medium">Price (dalam Rp)</p>
+            <div className="flex items-center border rounded overflow-hidden">
+              <span className="bg-gray-100 px-3 text-gray-600">Rp</span>
+              <input
+                type="number"
+                name="price"
+                step={1000}
+                value={form.price}
+                onChange={(e) => {
+                  let val = parseFloat(e.target.value);
+                  if (isNaN(val)) val = 0;
+                  setForm((prev) => ({ ...prev, price: val }));
+                  setDisplayPrice(formatPrice(val));
+                }}
+                className="flex-1 p-2 outline-none"
+                placeholder="Masukkan harga"
+              />
+            </div>
+            {form.price > 0 && (
+              <p className="text-gray-500 mt-1">Tertulis: {displayPrice}</p>
+            )}
+          </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"

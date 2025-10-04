@@ -137,7 +137,7 @@ function Home() {
                 key={course.id}
                 image={course.image}
                 title={course.title}
-                description={course.desc} // kalau di API namanya "desc"
+                description={course.desc}
                 avatar={course.avatar}
                 name={course.instructor}
                 role={course.role}

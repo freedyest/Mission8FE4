@@ -1,3 +1,10 @@
+// tambahkan helper formatPrice
+const formatPrice = (num) => {
+  if (!num) return "";
+  if (num >= 1000) return "Rp " + (num / 1000).toFixed(0) + "K";
+  return "Rp " + num;
+};
+
 function VideoCard({
   image,
   title,
@@ -8,11 +15,11 @@ function VideoCard({
   company,
   rating,
   review,
-  price,
+  price, // tetap angka
   onEdit,
   onDelete,
 }) {
-  // generate star (tetap sama)
+  // generate stars (tetap sama)
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -83,7 +90,7 @@ function VideoCard({
       />
 
       {/* info course */}
-      <div className="w-3/5 box-border md:flex md:w-full md:flex-wrap ">
+      <div className="w-3/5 box-border md:flex md:w-full md:flex-wrap">
         <h3 className="font-bold text-lg md:w-full md:mb-4">{title}</h3>
         <p className="hidden md:flex text-gray-600">{description}</p>
 
@@ -97,7 +104,7 @@ function VideoCard({
             <h4 className="font-semibold">{name}</h4>
             <p className="text-darkgray text-sm">{role}</p>
           </div>
-          <p className="hidden md:flex font-semibold text-black mt-6 ">
+          <p className="hidden md:flex font-semibold text-black mt-6">
             {company}
           </p>
         </div>
@@ -114,9 +121,10 @@ function VideoCard({
           </span>
         </div>
         <span className="price font-bold ml-auto text-green-600 text-lg">
-          {price}
+          {formatPrice(price)}
         </span>
       </div>
+
       {/* tombol edit & delete */}
       {onEdit && onDelete && (
         <div className="flex w-full justify-end">
