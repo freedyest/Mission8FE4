@@ -128,7 +128,7 @@ function VideoCard({
       {/* tombol edit & delete */}
       {onEdit && onDelete && (
         <div className="flex w-full justify-end">
-          <div className="flex w-1/4 justify-between h-8">
+          <div className="flex w-1/4 lg:w-1/4 justify-between h-8">
             <button
               onClick={onEdit}
               className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
