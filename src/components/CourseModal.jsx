@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 
+// ==============================
 // Reusable input components
+// ==============================
+
 const TextInput = ({
   label,
   name,
@@ -13,7 +16,7 @@ const TextInput = ({
     <p>{label}</p>
     <input
       name={name}
-      value={value}
+      value={value ?? ""} // ✅ pastikan selalu controlled
       onChange={onChange}
       type={type}
       className="border p-2 rounded"
@@ -27,7 +30,7 @@ const TextareaInput = ({ label, name, value, onChange, rows = 3 }) => (
     <p>{label}</p>
     <textarea
       name={name}
-      value={value}
+      value={value ?? ""} // ✅ pastikan selalu controlled
       onChange={onChange}
       rows={rows}
       className="border p-2 rounded"
@@ -40,7 +43,7 @@ const SelectInput = ({ label, name, value, onChange, options, required }) => (
     <p>{label}</p>
     <select
       name={name}
-      value={value}
+      value={value ?? ""} // ✅ pastikan selalu controlled
       onChange={onChange}
       className="border p-2 rounded"
       required={required}
@@ -55,23 +58,33 @@ const SelectInput = ({ label, name, value, onChange, options, required }) => (
   </div>
 );
 
+// ==============================
+// FIXED FileInput component
+// ==============================
+
 const FileInput = ({
   label,
   field,
   value,
   mode,
   setMode,
-  onChange,
+  onChangeFile,
+  onChangeURL,
   previewClass,
 }) => (
   <div className="flex flex-col mb-2">
     <p>{label}</p>
+
+    {/* Switch Mode */}
     <div className="flex gap-4 mb-2">
       <label>
         <input
           type="radio"
           checked={mode === "url"}
-          onChange={() => setMode("url")}
+          onChange={() => {
+            setMode("url");
+            onChangeURL({ target: { name: field, value: "" } }); // reset value
+          }}
         />{" "}
         URL
       </label>
@@ -79,16 +92,21 @@ const FileInput = ({
         <input
           type="radio"
           checked={mode === "upload"}
-          onChange={() => setMode("upload")}
+          onChange={() => {
+            setMode("upload");
+            onChangeURL({ target: { name: field, value: "" } }); // reset value
+          }}
         />{" "}
         Upload
       </label>
     </div>
+
+    {/* Input field */}
     {mode === "url" ? (
       <input
         name={field}
-        value={value}
-        onChange={onChange}
+        value={value ?? ""}
+        onChange={onChangeURL}
         className="border p-2 rounded"
         placeholder={`${label} URL`}
       />
@@ -96,10 +114,12 @@ const FileInput = ({
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => onChange(e, field)}
+        onChange={(e) => onChangeFile(e, field)}
         className="border p-2 rounded"
       />
     )}
+
+    {/* Preview */}
     {value && (
       <img
         src={value}
@@ -109,6 +129,10 @@ const FileInput = ({
     )}
   </div>
 );
+
+// ==============================
+// Main CourseModal
+// ==============================
 
 function CourseModal({ isOpen, onClose, onSave, initialData }) {
   const defaultForm = {
@@ -133,8 +157,26 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
 
   // Reset form saat modal dibuka
   useEffect(() => {
-    setForm(initialData ? { ...initialData } : defaultForm);
-    setDisplayPrice(formatPrice(initialData?.price || 0));
+    if (initialData) {
+      // ✅ pastikan semua key selalu ada
+      setForm({
+        image: initialData.image || "",
+        title: initialData.title || "",
+        desc: initialData.desc || "",
+        avatar: initialData.avatar || "",
+        instructor: initialData.instructor || "",
+        role: initialData.role || "",
+        company: initialData.company || "",
+        rating: initialData.rating ?? 0,
+        reviews: initialData.reviews ?? 0,
+        price: initialData.price ?? "",
+        category: initialData.category || "",
+      });
+      setDisplayPrice(formatPrice(initialData.price || 0));
+    } else {
+      setForm(defaultForm);
+      setDisplayPrice("");
+    }
   }, [initialData, isOpen]);
 
   // Format price helper
@@ -145,22 +187,23 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
     return "Rp " + num;
   };
 
+  // Handle text/select changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle file input safely
   const handleFileChange = (e, field) => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setForm((prev) => ({ ...prev, [field]: url }));
-    }
+    const file = e.target.files?.[0];
+    if (!file) return; // ✅ hindari error files[0] is null
+    const url = URL.createObjectURL(file);
+    setForm((prev) => ({ ...prev, [field]: url }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(form); // form.price tetap angka
+    onSave(form);
     onClose();
   };
 
@@ -184,13 +227,14 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
             onChange={handleChange}
             required
           />
+
           <TextareaInput
             label="Description"
             name="desc"
             value={form.desc}
             onChange={handleChange}
-            rows={3}
           />
+
           <SelectInput
             label="Category"
             name="category"
@@ -200,23 +244,27 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
             required
           />
 
+          {/* Image */}
           <FileInput
             label="Image"
             field="image"
             value={form.image}
             mode={fileMode.image}
             setMode={(m) => setFileMode((prev) => ({ ...prev, image: m }))}
-            onChange={handleFileChange}
+            onChangeFile={handleFileChange}
+            onChangeURL={handleChange}
             previewClass="w-32 h-20 object-cover"
           />
 
+          {/* Avatar */}
           <FileInput
             label="Avatar"
             field="avatar"
             value={form.avatar}
             mode={fileMode.avatar}
             setMode={(m) => setFileMode((prev) => ({ ...prev, avatar: m }))}
-            onChange={handleFileChange}
+            onChangeFile={handleFileChange}
+            onChangeURL={handleChange}
             previewClass="w-16 h-16 object-cover rounded-full"
           />
 
@@ -261,7 +309,7 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
                 step="0.1"
                 min={0}
                 max={5}
-                value={form.rating}
+                value={form.rating ?? 0}
                 onChange={(e) => {
                   let val = parseFloat(e.target.value);
                   if (isNaN(val)) val = 0;
@@ -275,7 +323,7 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
           </div>
 
           <TextInput
-            label="Reviews(jumlah reviewer)"
+            label="Reviews (jumlah reviewer)"
             name="reviews"
             type="number"
             value={form.reviews}
@@ -291,7 +339,7 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
                 type="number"
                 name="price"
                 step={1000}
-                value={form.price}
+                value={form.price ?? ""}
                 onChange={(e) => {
                   let val = parseFloat(e.target.value);
                   if (isNaN(val)) val = 0;
@@ -307,6 +355,7 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
             )}
           </div>
 
+          {/* Buttons */}
           <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"
