@@ -1,4 +1,3 @@
-// src/pages/Register.jsx
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +18,11 @@ function Register() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+
+  // Local validation errors
+  const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // Toggle password visibility
   const [showPassword, setShowPassword] = useState(false);
@@ -47,20 +51,59 @@ function Register() {
     dispatch(fetchUsers());
   }, [dispatch]);
 
+  // 👉 Auto-format nomor HP
+  const formatPhone = (value) => {
+    const digits = value.replace(/\D/g, "");
+    let formatted = digits;
+    if (digits.length > 3 && digits.length <= 7) {
+      formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    } else if (digits.length > 7) {
+      formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(
+        7,
+        11
+      )}`;
+    }
+    return formatted;
+  };
+
+  // 👉 Regex untuk validasi email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const handleRegister = (e) => {
     e.preventDefault();
 
-    // Validasi form
+    // Validasi kosong
     if (!nama || !email || !phone || !password || !confirm) {
       alert("Semua field wajib diisi!");
       return;
     }
+
+    // Email format
+    if (!emailRegex.test(email)) {
+      alert("Format email tidak valid!");
+      return;
+    }
+
+    // Password minimal 8 karakter
+    if (password.length < 8) {
+      alert("Kata sandi minimal 8 karakter!");
+      return;
+    }
+
+    // Konfirmasi password
     if (password !== confirm) {
       alert("Password dan konfirmasi tidak sama!");
       return;
     }
 
-    // Cek duplikat email dari Redux state
+    // Nomor HP minimal 8 digit angka
+    const digitOnly = phone.replace(/\D/g, "");
+    if (digitOnly.length < 8) {
+      alert("Nomor HP minimal 8 digit angka!");
+      return;
+    }
+
+    // Email duplikat
     const userExists = users.find((u) => u.email === email);
     if (userExists) {
       alert("Email sudah terdaftar!");
@@ -70,7 +113,7 @@ function Register() {
     const newUser = {
       nama,
       email,
-      phone: `${selectedCountry.code}${phone}`,
+      phone: `${selectedCountry.code} ${digitOnly}`,
       password,
     };
 
@@ -124,10 +167,19 @@ function Register() {
                 type="email"
                 id="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEmail(val);
+                  setEmailError(
+                    !emailRegex.test(val) ? "Format email tidak valid" : ""
+                  );
+                }}
                 className="mt-1 block w-full px-3 py-2 border rounded-md"
                 required
               />
+              {emailError && (
+                <p className="text-red-500 text-sm mt-1">{emailError}</p>
+              )}
             </div>
 
             {/* Phone */}
@@ -179,11 +231,22 @@ function Register() {
                   type="tel"
                   id="phonenumber"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const digits = val.replace(/\D/g, "");
+                    const formatted = formatPhone(digits);
+                    setPhone(formatted);
+                    setPhoneError(
+                      digits.length < 8 ? "Minimal 8 digit angka" : ""
+                    );
+                  }}
                   className="block w-full px-3 py-2 border rounded-r-md"
                   required
                 />
               </div>
+              {phoneError && (
+                <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -196,7 +259,13 @@ function Register() {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPassword(val);
+                    setPasswordError(
+                      val.length < 8 ? "Minimal 8 karakter" : ""
+                    );
+                  }}
                   className="flex-1 px-3 py-2"
                   required
                 />
@@ -212,6 +281,9 @@ function Register() {
                   />
                 </button>
               </div>
+              {passwordError && (
+                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+              )}
             </div>
 
             {/* Confirm Password */}
