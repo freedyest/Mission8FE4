@@ -35,13 +35,13 @@ function Login() {
       return;
     }
 
-    // Cari user di state Redux
+    //  user  redux
     const foundUser = users.find(
       (u) => u.email === email && u.password === password
     );
 
     if (foundUser) {
-      //  user login ke localStorage  dan Redux state
+      //  user login
       localStorage.setItem("currentUser", JSON.stringify(foundUser));
       alert(`Login berhasil! Selamat datang ${foundUser.nama}`);
       navigate("/Home");

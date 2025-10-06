@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 
-// ==============================
-// Reusable input components
-// ==============================
+// input components
 
 const TextInput = ({
   label,
@@ -16,7 +14,7 @@ const TextInput = ({
     <p>{label}</p>
     <input
       name={name}
-      value={value ?? ""} // ✅ pastikan selalu controlled
+      value={value ?? ""}
       onChange={onChange}
       type={type}
       className="border p-2 rounded"
@@ -30,7 +28,7 @@ const TextareaInput = ({ label, name, value, onChange, rows = 3 }) => (
     <p>{label}</p>
     <textarea
       name={name}
-      value={value ?? ""} // ✅ pastikan selalu controlled
+      value={value ?? ""}
       onChange={onChange}
       rows={rows}
       className="border p-2 rounded"
@@ -43,7 +41,7 @@ const SelectInput = ({ label, name, value, onChange, options, required }) => (
     <p>{label}</p>
     <select
       name={name}
-      value={value ?? ""} // ✅ pastikan selalu controlled
+      value={value ?? ""}
       onChange={onChange}
       className="border p-2 rounded"
       required={required}
@@ -58,9 +56,7 @@ const SelectInput = ({ label, name, value, onChange, options, required }) => (
   </div>
 );
 
-// ==============================
 // FIXED FileInput component
-// ==============================
 
 const FileInput = ({
   label,
@@ -94,7 +90,7 @@ const FileInput = ({
           checked={mode === "upload"}
           onChange={() => {
             setMode("upload");
-            onChangeURL({ target: { name: field, value: "" } }); // reset value
+            onChangeURL({ target: { name: field, value: "" } });
           }}
         />{" "}
         Upload
@@ -130,9 +126,7 @@ const FileInput = ({
   </div>
 );
 
-// ==============================
 // Main CourseModal
-// ==============================
 
 function CourseModal({ isOpen, onClose, onSave, initialData }) {
   const defaultForm = {
@@ -155,10 +149,9 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
 
   const categories = ["desain", "pengembangan", "bisnis", "pemasaran"];
 
-  // Reset form saat modal dibuka
+  // Reset form modal dibuka
   useEffect(() => {
     if (initialData) {
-      // ✅ pastikan semua key selalu ada
       setForm({
         image: initialData.image || "",
         title: initialData.title || "",
@@ -196,7 +189,7 @@ function CourseModal({ isOpen, onClose, onSave, initialData }) {
   // Handle file input safely
   const handleFileChange = (e, field) => {
     const file = e.target.files?.[0];
-    if (!file) return; // ✅ hindari error files[0] is null
+    if (!file) return;
     const url = URL.createObjectURL(file);
     setForm((prev) => ({ ...prev, [field]: url }));
   };

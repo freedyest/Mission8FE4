@@ -46,7 +46,7 @@ function Register() {
     setDropdownOpen(false);
   };
 
-  // Ambil semua user dulu (untuk validasi email duplikat)
+  //  validasi email duplikat
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
@@ -84,26 +84,26 @@ function Register() {
       return;
     }
 
-    // Password minimal 8 karakter
+    // Password
     if (password.length < 8) {
       alert("Kata sandi minimal 8 karakter!");
       return;
     }
 
-    // Konfirmasi password
+    //
     if (password !== confirm) {
       alert("Password dan konfirmasi tidak sama!");
       return;
     }
 
-    // Nomor HP minimal 8 digit angka
+    // Nomor HP
     const digitOnly = phone.replace(/\D/g, "");
     if (digitOnly.length < 8) {
       alert("Nomor HP minimal 8 digit angka!");
       return;
     }
 
-    // Email duplikat
+    // Email
     const userExists = users.find((u) => u.email === email);
     if (userExists) {
       alert("Email sudah terdaftar!");

@@ -13,7 +13,7 @@ export function useHomeHook() {
   const [editingCourse, setEditingCourse] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch awal
+  // Fetch
   useEffect(() => {
     setLoading(true);
     getCourses()

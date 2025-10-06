@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-// Optional interceptor (kalau mau logging/authorization)
+// Optional interceptor
 api.interceptors.request.use(
   (config) => {
     console.log("API Request:", config);

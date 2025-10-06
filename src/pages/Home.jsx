@@ -117,7 +117,7 @@ function Home() {
           onFilterChange={(value) => dispatch(setFilter(value))}
         />
 
-        {/* tombol create → hanya muncul kalau ada user login */}
+        {/* tombol create →  user login */}
         {currentUser?.email && (
           <div className="my-6">
             <button

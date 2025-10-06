@@ -9,13 +9,13 @@ function Header({ withUserMenu = false }) {
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  // cek localStorage
+  // localStorage
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("currentUser"));
     setCurrentUser(user);
   }, []);
 
-  // close dropdown outside
+  //  dropdown outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -31,7 +31,7 @@ function Header({ withUserMenu = false }) {
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem("currentUser");
-    setCurrentUser(null); // reset state
+    setCurrentUser(null);
     navigate("/login");
   };
 
