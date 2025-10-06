@@ -1,4 +1,3 @@
-// tambahkan helper formatPrice
 const formatPrice = (num) => {
   if (!num) return "";
   if (num >= 1000) return "Rp " + (num / 1000).toFixed(0) + "K";
@@ -15,11 +14,11 @@ function VideoCard({
   company,
   rating,
   review,
-  price, // tetap angka
+  price,
   onEdit,
   onDelete,
 }) {
-  // generate stars (tetap sama)
+  // generate stars
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
